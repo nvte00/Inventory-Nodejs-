@@ -1,7 +1,9 @@
 const db = require("../app/index");
 const Product = db.product;
 const Import = db.import;
-
+const ImportProduct = db.import_product;
+const Sequelize = db.Sequelize;
+const Op = db.Sequelize.Op;
 
 function addproduct(importid, productid) {
     return Import.findByPk(importid)
@@ -26,13 +28,30 @@ function addproduct(importid, productid) {
         });
 }
 
+
+function addproduct2(import_id, product_id, amount) {
+    return new Promise((resolve, reject) => {
+        ImportProduct.create({
+            importId: export_id,
+            productId: product_id,
+            import_amount: amount
+        }).then(e => {
+            resolve(e);
+        })
+
+    })
+}
+
+// each import update amount of product
 exports.createApi = (req, res) => {
-    const productid = req.body.product_id;
+    const product_id = req.body.product_id;
+    const amount = req.body.import_amount;
     const imports = {
         id: req.body.id,
         date: req.body.date,
         price: req.body.price,
         status: req.body.status,
+        suplierId: req.body.suplierId
 
     };
     // Validate request
@@ -43,17 +62,26 @@ exports.createApi = (req, res) => {
         return;
     }
     // Save  in the database
-    Export.create(imports)
+    Import.create(imports)
         .then(data => {
-            addProduct(data.id, productid);
-            res.send(data);
+            addproduct2(data.id, req.body.product_id, req.body.import_amount)
+                .then((e) => {
+                    console.log(JSON.stringify(e));
+                })
+                .then(() => {
+                    Product.findByPk(req.body.product_id)
+                        .then((p) => {
+                            var modedAmount = p.amount + req.body.import_amount;
+                            p.update(
+                                { amount: modedAmount }
+                            )
+                        })
+                })
+
         })
-        .catch(err => {
-            res.status(500).send({
-                message:
-                    err.message || "Some error occurred while creating ."
-            });
-        });
+
+    res.send(imports)
+
 };
 
 //////////////////////////////////

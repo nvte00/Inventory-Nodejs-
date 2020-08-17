@@ -46,6 +46,7 @@ function addproduct2(export_id, product_id, amount) {
 
 
 // each export update amount of product
+
 exports.createApi = (req, res) => {
     const product_id = req.body.product_id;
     const amount = req.body.export_amount;
@@ -54,6 +55,7 @@ exports.createApi = (req, res) => {
         date: req.body.date,
         price: req.body.price,
         status: req.body.status,
+        customerId: req.body.customerId
 
     };
     // Validate request
@@ -66,18 +68,22 @@ exports.createApi = (req, res) => {
     // Save  in the database
     Export.create(exports)
         .then(data => {
-            // addproduct(data.id, product_id).then(()=>{console.log(123123123);})
-            addproduct2(data.id, req.body.product_id, req.body.export_amount).then((e) => {
-                console.log(JSON.stringify(e));
-            })
+            addproduct2(data.id, req.body.product_id, req.body.export_amount)
+                .then((e) => {
+                    console.log(JSON.stringify(e));
+                })
+                .then(() => {
+                    Product.findByPk(req.body.product_id)
+                        .then((p) => {
+                            var modedAmount = p.amount - req.body.export_amount;
+                            p.update(
+                                { amount: modedAmount }
+                            )
+                        })
+                })
 
         })
-        .then(() => {
-            Product.findByPk(req.body.product_id).then(pro => {
-                const amountUpdate = pro.amount - amount;
-                pro.update({ amount: amountUpdate });
-            })
-        })
+
     res.send(exports)
 
 };

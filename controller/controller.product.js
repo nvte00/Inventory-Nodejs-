@@ -117,5 +117,23 @@ exports.createApi = (req, res) => {
         });
       });
   };
+  //////
+  exports.reportWarningAmount = (req,res)=>{
+    var resultSet = [];
+    var result = [];
+    Product.findAll().then((e)=>{
+      for(var i = 0 ; i< e.length;i++){
+        resultSet.push(e[i]);
+      }
+    })
+    .then(()=>{
+      for(var i=0;i<resultSet.length;i++){
+        if(resultSet[i].amount<70){
+          result.push(resultSet[i]);
+        }
+      }
+      res.send(result);
+    })
+  }
   
   
