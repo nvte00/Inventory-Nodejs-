@@ -1,8 +1,8 @@
-const { DataTypes, Sequelize } = require("sequelize/types")
 
-const {DataTypes} = require('sequelize');
 
-module.exports = (sequelize, Sequelize) =>{
+const { DataTypes } = require('sequelize');
+
+module.exports = (sequelize, Sequelize) => {
     const Customer = sequelize.define("customer", {
         id: {
             type: DataTypes.STRING,

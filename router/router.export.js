@@ -7,13 +7,15 @@ module.exports = app => {
     router.post("/", exports.createApi);
 
 
-    router.get("/", exports.findAllApi);
+    router.get("/find", exports.findAllApi);
 
-    router.get("/:id", exports.findOneApi);
+    router.get("/find/:id", exports.findOneApi);
 
-    router.put("/:id", exports.updateApi);
+    router.put("/find/:id", exports.updateApi);
 
-    router.delete("/:id", exports.deleteApi);
+    router.delete("/delete/:id", exports.deleteApi);
+
+    router.get("/get", exports.getExportedProductByMonth);
 
 
 

@@ -6,13 +6,13 @@ module.exports = app => {
     router.post("/", product.createApi);
   
 
-    router.get("/", product.findAllApi);
+    router.get("/find", product.findAllApi);
    
-    router.get("/:id", product.findOneApi);
+    router.get("/find/:id", product.findOneApi);
 
-    router.put("/:id", product.updateApi);
+    router.put("/find/:id", product.updateApi);
   
-    router.delete("/:id", product.deleteApi);
+    router.delete("/delete/:id", product.deleteApi);
 
     
   

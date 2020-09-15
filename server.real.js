@@ -31,13 +31,14 @@ app.get("/", (req, res) => {
   res.json({ message: "Welcome to  application." });
 });
 /////////////////////////////////
-require("./routes/routes")(app);
-require('./routes/routes.export')(app);
+require("./router/router.product")(app);
+require('./router/router.export')(app);
+require('./router/router.import')(app);
 
 
 
 
-// set port, listen for requests
+// set port, listen for requestst
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
   console.log(`Server is running on port ${PORT}.`);

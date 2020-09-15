@@ -46,10 +46,10 @@ db.import.belongsToMany(db.product, {
 
 ///////assocition customer & export
 db.customer.hasMany(db.export);
-db.export.belongTo(db.customer);
+db.export.belongsTo(db.customer);
 
 //association suplier & import
 db.suplier.hasMany(db.import);
-db.import.belongTo(db.suplier);
+db.import.belongsTo(db.suplier);
 
 module.exports = db;

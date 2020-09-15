@@ -2,25 +2,28 @@ const db = require("../app/index");
 const Product = db.product;
 const Import = db.import;
 const ImportProduct = db.import_product;
+const Suplier = db.suplier;
 const Sequelize = db.Sequelize;
 const Op = db.Sequelize.Op;
 
-function addproduct(importid, productid) {
-    return Import.findByPk(importid)
-        .then((im) => {
-            if (!im) {
-                console.log("Import not found!");
+
+function addproduct(import_id, product_id, amount) {
+    return Import.findByPk(export_id)
+        .then((imports) => {
+            if (!imports) {
+                console.log("export not found!");
                 return null;
             }
-            return Product.findByPk(productid).then((product) => {
+            return Product.findByPk(product_id).then((product) => {
                 if (!product) {
                     console.log("product not found!");
                     return null;
                 }
 
-                im.addProduct(product);
-                console.log(`>> added product id=${product.id} to import id=${product.name}`);
-                return im;
+                exports.addProduct(product, { through: { import_amount: amount } });
+
+                console.log(`>> added product id=${product.id} to export id=${imports.name}`);
+                return imports;
             });
         })
         .catch((err) => {
@@ -29,18 +32,21 @@ function addproduct(importid, productid) {
 }
 
 
+
+
 function addproduct2(import_id, product_id, amount) {
     return new Promise((resolve, reject) => {
         ImportProduct.create({
-            importId: export_id,
+            importId: import_id,
             productId: product_id,
             import_amount: amount
-        }).then(e => {
-            resolve(e);
         })
+    }).then(e => {
+        resolve(e);
+    }
+    )
+};
 
-    })
-}
 
 // each import update amount of product
 exports.createApi = (req, res) => {
@@ -50,7 +56,6 @@ exports.createApi = (req, res) => {
         id: req.body.id,
         date: req.body.date,
         price: req.body.price,
-        status: req.body.status,
         suplierId: req.body.suplierId
 
     };
@@ -62,25 +67,31 @@ exports.createApi = (req, res) => {
         return;
     }
     // Save  in the database
-    Import.create(imports)
-        .then(data => {
-            addproduct2(data.id, req.body.product_id, req.body.import_amount)
-                .then((e) => {
-                    console.log(JSON.stringify(e));
-                })
-                .then(() => {
-                    Product.findByPk(req.body.product_id)
-                        .then((p) => {
-                            var modedAmount = p.amount + req.body.import_amount;
-                            p.update(
-                                { amount: modedAmount }
-                            )
-                        })
-                })
+    setTimeout(() => {
+        Import.create(imports)
+            .then(data => {
+                addproduct2(data.id, req.body.product_id, req.body.import_amount)
+                    .then((e) => {
+                        console.log(JSON.stringify(e));
+                    })
+                    .then(() => {
+                        Product.findByPk(req.body.product_id)
+                            .then((p) => {
+                                var modelAmount = p.amount + req.body.import_amount;
+                                p.update(
+                                    { amount: modelAmount }
+                                );
+                                res.send(imports)
+                            })
 
-        })
+                    });
 
-    res.send(imports)
+            })
+    }, 500);
+
+
+
+
 
 };
 
@@ -90,14 +101,25 @@ exports.findAllApi = (req, res) => {
     const id = req.query.id;
     var condition = id ? { Id: { [Op.like]: `%${id}%` } } : null;
 
-    Import.findAll({ where: condition })
+    Import.findAll({
+        where: condition,
+        include: [
+            {
+                model: Product
+            },
+            {
+                model: Suplier
+            }
+        ],
+
+    })
         .then(data => {
             res.send(data);
         })
         .catch(err => {
             res.status(500).send({
                 message:
-                    err.message || "Some error occurred!!!!!! lizzzzzzzz"
+                    err.message || "Some error occurred!!!!!! "
             });
         });
 
@@ -107,7 +129,16 @@ exports.findAllApi = (req, res) => {
 exports.findOneApi = (req, res) => {
     const id = req.params.id;
 
-    Import.findByPk(id)
+    Import.findByPk(id, {
+        include: [
+            {
+                model: Product
+            },
+            {
+                model: Suplier
+            }
+        ],
+    })
         .then(data => {
             res.send(data);
         })

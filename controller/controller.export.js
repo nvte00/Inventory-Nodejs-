@@ -1,8 +1,11 @@
 const db = require("../app");
+
 const Product = db.product;
 const Export = db.export;
 const ExportProduct = db.export_product;
+const Customer = db.customer;
 const Sequelize = db.Sequelize;
+const sequelize = db.sequelize;
 
 const Op = db.Sequelize.Op;
 
@@ -78,13 +81,14 @@ exports.createApi = (req, res) => {
                             var modedAmount = p.amount - req.body.export_amount;
                             p.update(
                                 { amount: modedAmount }
-                            )
+                            );
+                            
                         })
                 })
 
         })
 
-    res.send(exports)
+        res.send(exports)
 
 };
 
@@ -95,7 +99,19 @@ exports.findAllApi = (req, res) => {
     const id = req.query.id;
     var condition = id ? { Id: { [Op.like]: `%${id}%` } } : null;
 
-    Export.findAll({ where: condition })
+    Export.findAll({
+        where: condition,
+        include: [
+            {
+                model: Product,
+                attributes: []
+            },
+            {
+                model: Customer,
+                attributes: []
+            }
+        ],
+    })
         .then(data => {
             res.send(data);
         })
@@ -112,7 +128,16 @@ exports.findAllApi = (req, res) => {
 exports.findOneApi = (req, res) => {
     const id = req.params.id;
 
-    Export.findByPk(id)
+    Export.findByPk(id, {
+        include: [
+            {
+                model: Product
+            },
+            {
+                model: Customer
+            }
+        ]
+    })
         .then(data => {
             res.send(data);
         })
@@ -156,6 +181,7 @@ exports.deleteApi = (req, res) => {
         where: { id: id }
     })
         .then(num => {
+            console.log(num);
             if (num == 1) {
                 res.send({
                     message: "Deleted successfully!"
@@ -217,7 +243,7 @@ exports.reportOnDayExport = (req, res) => {
         },
         order: [
             ['date', 'ASC'],
-            // ['id', 'DESC']  
+
         ],
         include: [
             {
@@ -237,3 +263,42 @@ exports.reportOnDayExport = (req, res) => {
         });
     })
 }
+
+
+
+exports.getExportedProductByMonth = (req, res) => {
+    var Month = req.body.month;
+    var ps = new Set();
+    var pid = [];
+    sequelize.query(("select * from exports e join export_products ep on e.id=ep.exportId where Month(date) = " + Month + " and Year(date)= Year(CURDATE()) group by productId"), {
+        model: Export,
+        mapToModel: false
+    }).then((e) => {
+
+        e.forEach(element => {
+            var p = JSON.parse(JSON.stringify(element));
+            Export.findByPk(p.id).then(e => {
+                ps.add(e);
+            })
+        });
+
+
+    })
+    setTimeout(() => {
+        var p = [];
+        for (var i of ps) {
+            if (p.includes(i)) {
+
+            } else {
+                p.push(i);
+            }
+
+        }
+        res.send(p);
+    }, 200);
+}
+
+// exports.getProductResidue = (req, res) => {
+//     sequelize.query(("SELECT * WHERE "))
+
+// }
